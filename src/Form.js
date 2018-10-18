@@ -8,10 +8,16 @@ import ListItemText from '@material-ui/core/ListItemText';
 import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
 import { ErrorHandler } from './errorHandler';
+import confirm from './confirm';
 
 
 const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
 const ipRegex = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
+
+const listStyle = {
+  width: '100%',
+  maxWidth: 300,
+};
 
 class Form extends React.Component {
   state = {
@@ -23,7 +29,9 @@ class Form extends React.Component {
     errorMsg: '',
     isErrorEmail: true,
     isErrorIp: true,
-    usersArray: [{email: 'asia@gmail.com', nickname: 'joan', ipAddress: '118-121-15-15'}],
+    errorEmailMsg: '',
+    errorIpMsg: '',
+    usersArray: [],
   };
 
   handleChange = name => event => {
@@ -34,7 +42,7 @@ class Form extends React.Component {
     }
     this.setState({
       user: newUser,
-    }, () => console.log(this.state.user.nickname));
+    });
   };
   
   handleChangeEmail = event => {
@@ -48,9 +56,15 @@ class Form extends React.Component {
     });
     const validEmail = emailRegex.test(event.target.value);
     if (validEmail) {
-      this.setState({isErrorEmail: false});
+      this.setState({
+        isErrorEmail: false,
+        errorEmailMsg: '',
+      });
     } else {
-      this.setState({isErrorEmail: true});      
+      this.setState({
+        isErrorEmail: true,
+        errorEmailMsg: 'Invalid email address',
+      });      
     }
   };
 
@@ -65,19 +79,27 @@ class Form extends React.Component {
     });
     const validIp = ipRegex.test(event.target.value);
     if (validIp) {
-      this.setState({isErrorIp: false});
+      this.setState({
+        isErrorIp: false,
+        errorIpMsg: '',
+        
+      });
     } else {
-      this.setState({isErrorIp: true});      
+      this.setState({
+        isErrorIp: true,
+        errorIpMsg: 'Invalid IP address',        
+      });      
     }
   };
 
   submitUser = event => {
     event.preventDefault();
-    console.log('submitting');
     const { usersArray } = this.state;
     if (!usersArray.some(item => item.email === this.state.user.email)) {
       const newUsersArray = [...usersArray, this.state.user];
-      this.setState({ usersArray: newUsersArray });
+      this.setState({ 
+        usersArray: newUsersArray,
+      });
     } else {
       ErrorHandler.handle('repetition');
     };
@@ -88,79 +110,95 @@ class Form extends React.Component {
     this.setState({ usersArray: newArray });
   }
 
+  deleteAllUsers = () => {
+    confirm('Are you sure you want to delete all users???').then(
+      () => this.setState({ usersArray: [] }),
+      () => { },
+    );
+  }
+
   render() {
-    const { classes } = this.props;
     const { usersArray } = this.state;
-    const isInvalid = false;
-    // const isInvalid = this.state.isErrorEmail || this.state.isErrorIp;
-    console.log(this.state.usersArray);
+    const isInvalid = this.state.isErrorEmail || this.state.isErrorIp;
     return (
       <React.Fragment>
-        <Grid container direction="column">
-          <form noValidate autoComplete="off" onSubmit={this.submitUser}>
-            <Grid item>
-              <TextField
-                id="email"
-                label="Your email"
-                value={this.state.email}
-                onChange={this.handleChangeEmail}
-                margin="normal"
-              />
-            </Grid>
-            <Grid item>
-              <TextField
-                id="nickname"
-                label="Your nick name"
-                value={this.state.nickname}
-                onChange={this.handleChange('nickname')}
-                margin="normal"
-              />
-            </Grid>
-            <Grid item>        
-              <TextField
-                id="ip"
-                label="Your IP Address"
-                value={this.state.ipAddress}
-                onChange={this.handleChangeIp}
-                margin="normal"
-              />
-            </Grid>
-            <Grid item>
-              <Button 
-                variant="contained"
-                type="submit"
-                color="primary"
-                disabled={isInvalid}
-              >
-                Add User
-              </Button>       
-            </Grid>
-          </form>
-        </Grid>
-        <Grid container direction="row">
-          {usersArray.length > 0 &&
-            <Grid item>
-              <Typography variant="title">List of Users</Typography>
-              <List>
-                {usersArray.map(item => {
-                  return (
-                    <ListItem key={item.email}>
-                      <ListItemText primary={item.nickname} secondary={item.email} />
-                      <IconButton onClick={() => this.handleDelete(item.email)}>
-                        X
-                      </IconButton>
-                    </ListItem>  
-                  );
-                })}
-              </List>
-              <Button 
-                variant="contained"
-                color="primary"
-              >
-                Delete all Users
-              </Button>  
-            </Grid>
-          }
+        <Grid container direction="row" spacing={24}>
+          <Grid item xs={12} sm={6} style={{ marginTop: 20 }}>
+            <form noValidate autoComplete="off" onSubmit={this.submitUser}>
+              <Grid item>
+                <TextField
+                  id="email"
+                  label="Your email"
+                  value={this.state.email}
+                  onChange={this.handleChangeEmail}
+                  margin="normal"
+                />
+              </Grid>
+              <Grid item>
+                <Typography color="error">
+                  {this.state.errorEmailMsg}
+                </Typography>
+              </Grid>
+              <Grid item>
+                <TextField
+                  id="nickname"
+                  label="Your nick name"
+                  value={this.state.nickname}
+                  onChange={this.handleChange('nickname')}
+                  margin="normal"
+                />
+              </Grid>
+              <Grid item>        
+                <TextField
+                  id="ip"
+                  label="Your IP Address"
+                  value={this.state.ipAddress}
+                  onChange={this.handleChangeIp}
+                  margin="normal"
+                />
+              </Grid>
+              <Grid item>
+                <Typography color="error">
+                  {this.state.errorIpMsg}
+                </Typography>
+              </Grid>
+              <Grid item style={{ marginTop: 30}}>
+                <Button 
+                  variant="contained"
+                  type="submit"
+                  color="primary"
+                  disabled={isInvalid}
+                >
+                  Add User
+                </Button>       
+              </Grid>
+            </form>
+          </Grid>
+          <Grid item xs={12} sm={6} style={{ marginTop: 50 }}>
+            {usersArray.length > 0 &&
+              <Grid item style={listStyle}>
+                <Typography variant="title">List of Users</Typography>
+                <List>
+                  {usersArray.map(item => {
+                    return (
+                      <ListItem key={item.email}>
+                        <ListItemText primary={item.nickname} secondary={item.email} />
+                        <IconButton onClick={() => this.handleDelete(item.email)}>
+                          x
+                        </IconButton>
+                      </ListItem>  
+                    );
+                  })}
+                </List>
+                <Button
+                  variant="outlined"
+                  onClick={this.deleteAllUsers}
+                >
+                  Delete all Users
+                </Button>  
+              </Grid>
+            }
+          </Grid>
         </Grid>
       </React.Fragment>
     );
