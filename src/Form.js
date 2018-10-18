@@ -4,10 +4,10 @@ import Grid from '@material-ui/core/Grid';
 import Button from '@material-ui/core/Button';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import DeleteIcon from '@material-ui/icons/Delete';
-
+import IconButton from '@material-ui/core/IconButton';
+import Typography from '@material-ui/core/Typography';
+import { ErrorHandler } from './errorHandler';
 
 
 const emailRegex = /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/;
@@ -23,7 +23,7 @@ class Form extends React.Component {
     errorMsg: '',
     isErrorEmail: true,
     isErrorIp: true,
-    usersArray: [],
+    usersArray: [{email: 'asia@gmail.com', nickname: 'joan', ipAddress: '118-121-15-15'}],
   };
 
   handleChange = name => event => {
@@ -75,12 +75,22 @@ class Form extends React.Component {
     event.preventDefault();
     console.log('submitting');
     const { usersArray } = this.state;
-    const newUsersArray = [...usersArray, this.state.user];
-    this.setState({ usersArray: newUsersArray });
+    if (!usersArray.some(item => item.email === this.state.user.email)) {
+      const newUsersArray = [...usersArray, this.state.user];
+      this.setState({ usersArray: newUsersArray });
+    } else {
+      ErrorHandler.handle('repetition');
+    };
   };
+
+  handleDelete = val => {
+    const newArray = this.state.usersArray.filter(item => item.email !== val);
+    this.setState({ usersArray: newArray });
+  }
 
   render() {
     const { classes } = this.props;
+    const { usersArray } = this.state;
     const isInvalid = false;
     // const isInvalid = this.state.isErrorEmail || this.state.isErrorIp;
     console.log(this.state.usersArray);
@@ -127,21 +137,30 @@ class Form extends React.Component {
             </Grid>
           </form>
         </Grid>
-        <Grid container>
-          <List component="nav">
-            <ListItem button>
-              <ListItemIcon>
-                <DeleteIcon />
-              </ListItemIcon>
-              <ListItemText primary="Inbox" />
-            </ListItem>
-            <ListItem button>
-              <ListItemIcon>
-                <DeleteIcon />
-              </ListItemIcon>
-              <ListItemText primary="Drafts" />
-            </ListItem>
-          </List>
+        <Grid container direction="row">
+          {usersArray.length > 0 &&
+            <Grid item>
+              <Typography variant="title">List of Users</Typography>
+              <List>
+                {usersArray.map(item => {
+                  return (
+                    <ListItem key={item.email}>
+                      <ListItemText primary={item.nickname} secondary={item.email} />
+                      <IconButton onClick={() => this.handleDelete(item.email)}>
+                        X
+                      </IconButton>
+                    </ListItem>  
+                  );
+                })}
+              </List>
+              <Button 
+                variant="contained"
+                color="primary"
+              >
+                Delete all Users
+              </Button>  
+            </Grid>
+          }
         </Grid>
       </React.Fragment>
     );
