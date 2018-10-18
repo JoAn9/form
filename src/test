@@ -1,3 +1,18 @@
+Your task is to create a simple app that adds or remove users from the list
+1. Users should provide an email, nickname and IP address
+2. Email and IP address validation
+3. Add button should be disabled if validation does not pass
+4. If user already exists (checked by email or nickname) the operation should be blocked 
+5. Each user should be removable by corresponding remove button
+6. Removing entire list should be possible
+7. Removal requires confirmation
+8. Remove list button should not be visible while list is empty
+9. Popups informing why adding a user is not possible
+10. Sorting users list by nickname, email or date
+
+Nice to have:
+1. CSS styles
+
 class Welcome extends React.Component {
   state = {
     user: {
