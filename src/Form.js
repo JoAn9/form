@@ -32,6 +32,7 @@ class Form extends React.Component {
     errorEmailMsg: '',
     errorIpMsg: '',
     usersArray: [],
+    sort: 'ascending',
   };
 
   handleChange = name => event => {
@@ -106,8 +107,13 @@ class Form extends React.Component {
   };
 
   handleDelete = val => {
-    const newArray = this.state.usersArray.filter(item => item.email !== val);
-    this.setState({ usersArray: newArray });
+    confirm('Are you sure you want to delete this user?').then(
+      () => {
+        const newArray = this.state.usersArray.filter(item => item.email !== val);
+        this.setState({ usersArray: newArray });
+      },
+      () => {}
+    );
   }
 
   deleteAllUsers = () => {
@@ -116,6 +122,22 @@ class Form extends React.Component {
       () => { },
     );
   }
+  sortUsers = () => {
+    if (this.state.sort === 'ascending') {
+      const sortedArray = this.state.usersArray.sort((el1, el2) => (el1.email > el2.email) ? 1 : ((el2.email > el1.email) ? -1 : 0));
+      this.setState({ 
+        usersArray: sortedArray,
+        sort: 'descending',
+      });
+    } else {
+      const sortedArray = this.state.usersArray.sort((el1, el2) => (el2.email > el1.email) ? 1 : ((el1.email > el2.email) ? -1 : 0));
+      this.setState({
+        usersArray: sortedArray,
+        sort: 'ascending',
+      });      
+    }
+  }
+
 
   render() {
     const { usersArray } = this.state;
@@ -195,6 +217,13 @@ class Form extends React.Component {
                   onClick={this.deleteAllUsers}
                 >
                   Delete all Users
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={this.sortUsers}
+                  style={{ marginTop: 20 }}
+                >
+                  Sort Users by email {this.state.sort}
                 </Button>  
               </Grid>
             }
